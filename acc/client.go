@@ -1,13 +1,18 @@
 package acc
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+
 	"google.golang.org/grpc"
 
 	pbConfig "github.com/kenticny/go-acc-client/pb/configuration"
 )
 
 const (
-	DefaultAccServer = ""
+	DefaultAccServer = "127.0.0.1:6767"
 
 	ENV_PRODUCTION    = pbConfig.Environment_PRODUCTION
 	ENV_PREPRODUCTION = pbConfig.Environment_PREPRODUCTION
@@ -17,12 +22,43 @@ const (
 
 type Client struct {
 	conn *grpc.ClientConn
-	rpc  *pbConfig.ConfigurationClient
+	rpc  pbConfig.ConfigurationClient
 	env  pbConfig.Environment
 }
 
-func (c *Client) Pull(keys []string) *Configuration {
-	return nil
+func (c *Client) Pull(keys ...string) *Configuration {
+	config := new(Configuration)
+	if len(keys) == 0 {
+		return config
+	}
+
+	// get context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	configMap := make(map[string]interface{})
+
+	for _, key := range keys {
+		req := &pbConfig.RequestByKey{
+			Key: &pbConfig.Key{Key: key},
+		}
+		cfg, err := c.rpc.Get(ctx, req)
+		if err != nil {
+			continue
+		}
+		var tpCfgMap map[string]interface{}
+		if err := json.Unmarshal([]byte(cfg.Config), &tpCfgMap); err != nil {
+			continue
+		}
+		for k, v := range tpCfgMap {
+			sk := fmt.Sprintf("%s.%s", key, k)
+			configMap[sk] = v
+		}
+	}
+	config.cfg = configMap
+	return config
 }
 
 // NewClient create a acc client
@@ -47,7 +83,7 @@ func NewClient(opts AccOptions) *Client {
 
 	client := &Client{
 		conn: conn,
-		rpc:  &rpc,
+		rpc:  rpc,
 		env:  opts.Environment,
 	}
 	return client
