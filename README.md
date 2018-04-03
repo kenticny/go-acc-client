@@ -1,6 +1,6 @@
 # go-acc-client
 
-ACC client for Golang
+ACC client for Golang.
 
 ## Installation
 
@@ -30,22 +30,42 @@ fmt.Println(config.GetBoolean("key3")) // get boolean value
 
 ## API
 
+### AccOptions
+
+- `Host` Acc server host, optional, default server is `127.0.0.1:6767`.
+
+- `Appid` Application id, required.
+
+- `Appsecret` Application secret, required.
+
+- `Environment` Config environment, optional, default is `acc.ENV_LOCAL`.
+
+    - `acc.ENV_LOCAL`: local
+
+    - `acc.ENV_DEVELOPMENT`: development
+
+    - `acc.ENV_PREPRODUCTION`: pre-production
+
+    - `acc.ENV_PRODUCTION`: production
+
+- `Namespace` optional, Configurations append in namespace configuration.
+
 ### Client
 
 - `Pull(keys ...string) Configuration`
 
-  Fetch configurations from remote by keys
+  Fetch configurations from remote by keys.
 
 ### Configuration
 
 - `GetString(key string) string`
 
-  Get string value by key
+  Get string value by key.
 
 - `GetNumber(key string) float64`
 
-  Get float64 value by key
+  Get float64 value by key.
 
 - `GetBoolean(key string) bool`
 
-  Get boolean value by key
+  Get boolean value by key.
