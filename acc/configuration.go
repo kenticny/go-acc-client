@@ -1,5 +1,10 @@
 package acc
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type Configuration struct {
 	cfg map[string]interface{}
 }
@@ -35,4 +40,15 @@ func (c *Configuration) GetBoolean(key string) bool {
 		return false
 	}
 	return c.cfg[key].(bool)
+}
+
+func (c *Configuration) String() string {
+	if len(c.cfg) == 0 {
+		return ""
+	}
+	cfgJSON, err := json.Marshal(c.cfg)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%s", cfgJSON)
 }

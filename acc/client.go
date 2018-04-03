@@ -21,9 +21,10 @@ const (
 )
 
 type Client struct {
-	conn *grpc.ClientConn
-	rpc  pbConfig.ConfigurationClient
-	env  pbConfig.Environment
+	conn      *grpc.ClientConn
+	rpc       pbConfig.ConfigurationClient
+	env       pbConfig.Environment
+	namespace string
 }
 
 func (c *Client) Pull(keys ...string) *Configuration {
@@ -53,7 +54,12 @@ func (c *Client) Pull(keys ...string) *Configuration {
 			continue
 		}
 		for k, v := range tpCfgMap {
-			sk := fmt.Sprintf("%s.%s", key, k)
+			var sk string
+			if c.namespace == key {
+				sk = k
+			} else {
+				sk = fmt.Sprintf("%s.%s", key, k)
+			}
 			configMap[sk] = v
 		}
 	}
@@ -85,6 +91,9 @@ func NewClient(opts AccOptions) *Client {
 		conn: conn,
 		rpc:  rpc,
 		env:  opts.Environment,
+	}
+	if opts.Namespace != "" {
+		client.namespace = opts.Namespace
 	}
 	return client
 }

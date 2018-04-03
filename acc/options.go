@@ -9,4 +9,5 @@ type AccOptions struct {
 	Appsecret   string
 	Host        string
 	Environment pbConfig.Environment
+	Namespace   string
 }
