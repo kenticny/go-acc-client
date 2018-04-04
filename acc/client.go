@@ -14,10 +14,10 @@ import (
 const (
 	DefaultAccServer = "127.0.0.1:6767"
 
-	ENV_PRODUCTION    = pbConfig.Environment_PRODUCTION
-	ENV_PREPRODUCTION = pbConfig.Environment_PREPRODUCTION
-	ENV_DEVELOPMENT   = pbConfig.Environment_DEVELOPMENT
-	ENV_LOCAL         = pbConfig.Environment_LOCAL
+	ENV_PRODUCTION  = pbConfig.Environment_PRODUCTION
+	ENV_STAGING     = pbConfig.Environment_STAGING
+	ENV_DEVELOPMENT = pbConfig.Environment_DEVELOPMENT
+	ENV_LOCAL       = pbConfig.Environment_LOCAL
 )
 
 type Client struct {

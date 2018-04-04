@@ -44,7 +44,7 @@ fmt.Println(config.GetBoolean("key3")) // get boolean value
 
     - `acc.ENV_DEVELOPMENT`: development
 
-    - `acc.ENV_PREPRODUCTION`: pre-production
+    - `acc.ENV_STAGING`: STAGING
 
     - `acc.ENV_PRODUCTION`: production
 
