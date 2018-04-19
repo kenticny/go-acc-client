@@ -44,6 +44,7 @@ func (c *Client) Pull(keys ...string) *Configuration {
 	for _, key := range keys {
 		req := &pbConfig.RequestByKey{
 			Key: &pbConfig.Key{Key: key},
+			Env: c.env,
 		}
 		cfg, err := c.rpc.Get(ctx, req)
 		if err != nil {
