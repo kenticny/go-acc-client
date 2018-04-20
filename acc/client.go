@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -39,31 +41,44 @@ func (c *Client) Pull(keys ...string) *Configuration {
 		cancel()
 	}()
 
+	var wg sync.WaitGroup
+	var mapMu sync.Mutex
 	configMap := make(map[string]interface{})
 
 	for _, key := range keys {
+		wg.Add(1)
 		req := &pbConfig.RequestByKey{
 			Key: &pbConfig.Key{Key: key},
 			Env: c.env,
 		}
-		cfg, err := c.rpc.Get(ctx, req)
-		if err != nil {
-			continue
-		}
-		var tpCfgMap map[string]interface{}
-		if err := json.Unmarshal([]byte(cfg.Config), &tpCfgMap); err != nil {
-			continue
-		}
-		for k, v := range tpCfgMap {
-			var sk string
-			if c.namespace == key {
-				sk = k
-			} else {
-				sk = fmt.Sprintf("%s.%s", key, k)
+		go func(key string, req *pbConfig.RequestByKey) {
+			cfg, err := c.rpc.Get(ctx, req)
+			if err != nil || cfg.Config == "" {
+				log.Printf("Get config %s failed", key)
+				wg.Done()
+				return
 			}
-			configMap[sk] = v
-		}
+			var tpCfgMap map[string]interface{}
+			if err := json.Unmarshal([]byte(cfg.Config), &tpCfgMap); err != nil {
+				log.Printf("Parse %s config error: %s", key, err)
+				wg.Done()
+				return
+			}
+			mapMu.Lock()
+			for k, v := range tpCfgMap {
+				var sk string
+				if c.namespace == key {
+					sk = k
+				} else {
+					sk = fmt.Sprintf("%s.%s", key, k)
+				}
+				configMap[sk] = v
+			}
+			mapMu.Unlock()
+			wg.Done()
+		}(key, req)
 	}
+	wg.Wait()
 	config.cfg = configMap
 	return config
 }
